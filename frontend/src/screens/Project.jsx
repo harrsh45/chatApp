@@ -2,7 +2,31 @@ import React, { useState, useEffect, useContext, useRef } from "react";
 import { UserContext } from "../context/user.context";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "../config/axios";
-import { initializeSocket,receiveMessage,sendMessage } from "../config/socket";
+import Markdown from 'markdown-to-jsx'
+import {
+  initializeSocket,
+  receiveMessage,
+  sendMessage,
+} from "../config/socket";
+
+
+
+function SyntaxHighlightedCode(props) {
+  const ref = useRef(null)
+
+  React.useEffect(() => {
+      if (ref.current && props.className?.includes('lang-') && window.hljs) {
+          window.hljs.highlightElement(ref.current)
+
+          // hljs won't reprocess the element unless this attribute is removed
+          ref.current.removeAttribute('data-highlighted')
+      }
+  }, [ props.className, props.children ])
+
+  return <code {...props} ref={ref} />
+}
+
+
 
 function Project() {
   const location = useLocation();
@@ -10,9 +34,15 @@ function Project() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState(new Set());
   const [project, setProject] = useState(location.state.project);
-    const [users, setUsers] = useState([]);
-    const [message, setMessage] = useState('');
+  const [users, setUsers] = useState([]);
+  const [message, setMessage] = useState("");
+  const [messages,setMessages]=useState([])
   const { user } = useContext(UserContext);
+  const messageBox = React.createRef();
+
+  function scrollToBottom() {
+    messageBox.current.scrollTop = messageBox.current.scrollHeight
+}
 
   const handleUserClick = (id) => {
     setSelectedUserId((prevSelectedUserId) => {
@@ -21,15 +51,52 @@ function Project() {
         newSelectedUserId.delete(id);
       } else {
         newSelectedUserId.add(id);
-        }
-      
+      }
+
       return newSelectedUserId;
     });
   };
 
-  useEffect(() => {
+    // function appendMessage(msg) {
+    //     const messageBox = document.querySelector('.message-box')
+    //     const message = document.createElement('div')
+    //     message.classList.add('message', 'flex', 'flex-col', 'p-2', 'bg-slate-50', 'w-fit', 'rounded-md')
+    //     message.innerHTML = `<small class='opacity-50 text-xs'>${msg.sender.email}</small>
+    //     <p class='text-sm'>${msg.message}</p>`
+    //     messageBox.appendChild(message)
+    //   }
 
-    initializeSocket(project._id)
+    //   function incomingmessage(msg)
+    //   {
+    //     const messageBox=document.querySelector('.message-box')
+    //     const message=document.createElement('div')
+    //     message.classList.add('message' ,'ml-auto','flex','flex-col','p-2','bg-slate-50','w-fit','rounded-md')
+    //     message.innerHTML = `<small class='opacity-50 text-xs'>${user.email}</small>
+    //     <p class='text-sm'>${msg}</p>`
+    //     messageBox.appendChild(message)
+    //   }
+
+    function WriteAiMessage(message) {
+
+      const messageObject = JSON.parse(message)
+
+      return (
+          <div
+              className='overflow-auto bg-slate-950 text-white rounded-sm p-2'
+          >
+              <Markdown
+                  children={messageObject.text}
+                  options={{
+                      overrides: {
+                          code: SyntaxHighlightedCode,
+                      },
+                  }}
+              />
+          </div>)
+  }
+
+  useEffect(() => {
+    initializeSocket(project._id);
 
     // if (!webContainer) {
     //     getWebContainer().then(container => {
@@ -38,57 +105,60 @@ function Project() {
     //     })
     // }
 
+    receiveMessage("project-message", (data) => {
+      
+      // appendMessage(data);
+      setMessages(prevMessages => [ ...prevMessages, data ])
+      scrollToBottom()
+      // console.log(data)
 
-    receiveMessage('project-message', data => {
+      // if (data.sender._id == 'ai') {
 
-        console.log(data)
-        
-        // if (data.sender._id == 'ai') {
+      //     const message = JSON.parse(data.message)
 
+      //     console.log(message)
 
-        //     const message = JSON.parse(data.message)
+      //     webContainer?.mount(message.fileTree)
 
-        //     console.log(message)
+      //     if (message.fileTree) {
+      //         setFileTree(message.fileTree || {})
+      //     }
+      //     setMessages(prevMessages => [ ...prevMessages, data ]) // Update messages state
+      // } else {
 
-        //     webContainer?.mount(message.fileTree)
+      //     setMessages(prevMessages => [ ...prevMessages, data ]) // Update messages state
+      // }
+    });
 
-        //     if (message.fileTree) {
-        //         setFileTree(message.fileTree || {})
-        //     }
-        //     setMessages(prevMessages => [ ...prevMessages, data ]) // Update messages state
-        // } else {
+    axios
+      .get(`/projects/get-project/${location.state.project._id}`)
+      .then((res) => {
+        // console.log(res.data.project)
 
+        setProject(res.data.project);
+        // setFileTree(res.data.project.fileTree || {})
+      });
 
-        //     setMessages(prevMessages => [ ...prevMessages, data ]) // Update messages state
-        // }
-    })
-
-
-    axios.get(`/projects/get-project/${location.state.project._id}`).then(res => {
-
-        console.log(res.data.project)
-
-        setProject(res.data.project)
-        setFileTree(res.data.project.fileTree || {})
-    })
-
-    axios.get('/users/all').then(res => {
-
-        setUsers(res.data.users)
-
-    }).catch(err => {
-
-        console.log(err)
-
-    })
-
-}, [])
+    axios
+      .get("/users/all")
+      .then((res) => {
+        setUsers(res.data.users);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }, []);
 
   function send() {
-    sendMessage('project-message',{
+    
+    sendMessage("project-message", {
       message,
-      sender:user._id
-    })
+      sender: user,
+    });
+    setMessage("");
+    // incomingmessage(message)
+    setMessages(prevMessages => [ ...prevMessages, { sender: user, message } ])
+    scrollToBottom()
   }
 
   function addCollaborators() {
@@ -99,18 +169,17 @@ function Project() {
       })
       .then((res) => {
         console.log(res.data);
-        console.log(selectedUserId),
-
-        setIsModalOpen(false);
+        console.log(selectedUserId), setIsModalOpen(false);
       })
       .catch((err) => {
         console.log(err);
       });
   }
 
+ 
   return (
     <main className="h-screen w-screen flex">
-      <section className="left relative flex flex-col h-screen min-w-96 bg-slate-300">
+      <section className="left relative flex flex-col h-screen min-w-72 bg-slate-300">
         <header className="flex justify-between items-center p-2 px-4 w-full bg-slate-100 absolute z-10 top-0">
           <button className="flex gap-2" onClick={() => setIsModalOpen(true)}>
             <i className="ri-add-fill mr-1"></i>
@@ -124,8 +193,8 @@ function Project() {
           </button>
         </header>
 
-        <div className="conversation-area pt-14 pb-10 flex-grow flex flex-col h-full relative">
-          {/* <div
+        <div className="conversation-area relative pt-14 h-full pb-10 flex-grow flex flex-col gap-1  ">
+        <div
                         ref={messageBox}
                         className="message-box p-1 flex-grow flex flex-col gap-1 overflow-auto max-h-full scrollbar-hide">
                         {messages.map((msg, index) => (
@@ -138,7 +207,9 @@ function Project() {
                                 </div>
                             </div>
                         ))}
-                    </div> */}
+                    </div>
+
+            
 
           <div className="inputField w-full flex absolute bottom-0">
             <input
@@ -148,10 +219,7 @@ function Project() {
               type="text"
               placeholder="Enter message"
             />
-            <button
-              onClick={send}
-              className="px-5 bg-slate-950 text-white"
-            >
+            <button onClick={send} className="px-5 bg-slate-950 text-white">
               <i className="ri-send-plane-fill"></i>
             </button>
           </div>
@@ -225,7 +293,6 @@ function Project() {
       )}
     </main>
   );
-};
+}
 
 export default Project;
-

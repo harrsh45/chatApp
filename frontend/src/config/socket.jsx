@@ -1,15 +1,16 @@
-import socketIOClient from 'socket.io-client'
+import socket from 'socket.io-client'
 let socketInstance=null
-export const initializeSocket=(ProjectId)=>{
+export const initializeSocket=(projectId)=>{
    
-        socketInstance=socketIOClient('import.meta.env.VITE_API_URL'),{
+        socketInstance=socket(import.meta.env.VITE_API_URL,{
             auth:{
                 token:localStorage.getItem('token')
-            },
-            query:{
-                projectId:ProjectId
             }
-        }
+            ,
+            query:{
+                projectId
+            }
+        })
         return socketInstance;
     }
 
