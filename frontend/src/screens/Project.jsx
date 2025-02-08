@@ -105,34 +105,36 @@ function Project() {
     }
 
     receiveMessage("project-message", (data) => {
-      console.log(JSON.parse(data.message))
+      console.log(data)
+      // console.log("aadmi msg "+JSON.parse(data.message))
+      console.log("msg recived")
       // appendMessage(data);
-      const message=JSON.parse(data.message)
-      webContainer?.mount(message.fileTree)
-      if(message.fileTree)
-      {
-        setFileTree(message.fileTree)
-      }
-      setMessages((prevMessages) => [...prevMessages, data]);
-      scrollToBottom();
-      // console.log(data)
-
-      // if (data.sender._id == 'ai') {
-
-      //     const message = JSON.parse(data.message)
-
-      //     console.log(message)
-
-      //     webContainer?.mount(message.fileTree)
-
-      //     if (message.fileTree) {
-      //         setFileTree(message.fileTree || {})
-      //     }
-      //     setMessages(prevMessages => [ ...prevMessages, data ]) // Update messages state
-      // } else {
-
-      //     setMessages(prevMessages => [ ...prevMessages, data ]) // Update messages state
+      // const message=JSON.parse(data.message)
+      // webContainer?.mount(message.fileTree)
+      // setMessages((prevMessages) => [...prevMessages, data]);
+      // scrollToBottom();
+      // if(message.fileTree)
+      // {
+      //   setFileTree(message.fileTree)
       // }
+      console.log(data.sender._id)
+
+      if (data.sender._id == 'ai') {
+
+          const message = JSON.parse(data.message)
+
+          console.log(message)
+
+          webContainer?.mount(message.fileTree)
+
+          if (message.fileTree) {
+              setFileTree(message.fileTree || {})
+          }
+          setMessages(prevMessages => [ ...prevMessages, data ]) // Update messages state
+      } else {
+
+          setMessages(prevMessages => [ ...prevMessages, data ]) // Update messages state
+      }
     });
 
     axios
