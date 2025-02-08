@@ -2,7 +2,7 @@ import morgan from 'morgan'
 import express from 'express'
 import connect from "./db/db.js"
 import userRoutes from './routes/user.routes.js'
-import User from './model/user.model.js'
+
 import cookieParser from 'cookie-parser'
 import projectRoutes from './routes/project.routes.js'
 import cors from 'cors'
