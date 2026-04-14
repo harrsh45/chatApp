@@ -7,7 +7,7 @@ import projectModel from './model/project.model.js'
 import mongoose from 'mongoose';
 import {generateResult} from './services/ai.service.js'
 
-
+ 
 const port = process.env.PORT || 3000 
 
 
