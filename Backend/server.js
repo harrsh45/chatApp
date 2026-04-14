@@ -8,7 +8,7 @@ import mongoose from 'mongoose';
 import {generateResult} from './services/ai.service.js'
 
 
-const port = process.env.PORT || 3000
+const port = process.env.PORT || 3000 
 
 
 const server = http.createServer(app)
