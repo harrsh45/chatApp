@@ -81,7 +81,7 @@ function Project() {
     const messageObject = JSON.parse(message);
 
     return (
-      <div className="overflow-auto bg-slate-950 text-white rounded-sm p-2">
+      <div className="overflow-auto bg-sky-50 text-slate-800 rounded-2xl p-3 border border-sky-200/70">
         <Markdown
           children={messageObject.text}
           options={{
@@ -184,8 +184,8 @@ function Project() {
 
   return (
     <main className="h-screen w-screen flex">
-      <section className="left relative flex flex-col h-screen min-w-72 bg-slate-300">
-        <header className="flex justify-between items-center p-2 px-4 w-full bg-slate-100 absolute z-10 top-0">
+      <section className="left relative flex flex-col h-screen min-w-72 bg-white border-r border-sky-200/60">
+        <header className="flex justify-between items-center p-2 px-4 w-full bg-sky-50/80 backdrop-blur absolute z-10 top-0 border-b border-sky-200/60 text-slate-800">
           <button className="flex gap-2" onClick={() => setIsModalOpen(true)}>
             <i className="ri-add-fill mr-1"></i>
             <p>Add collaborator</p>
@@ -210,9 +210,11 @@ function Project() {
                   msg.sender._id === "ai" ? "max-w-80" : "max-w-52"
                 } ${
                   msg.sender._id == user._id.toString() && "ml-auto"
-                }  message flex flex-col p-2 bg-slate-50 w-fit rounded-md`}
+                }  message flex flex-col p-2 bg-white border border-sky-200/60 w-fit rounded-2xl text-slate-800 shadow-sm`}
               >
-                <small className="opacity-65 text-xs">{msg.sender.email}</small>
+                <small className="opacity-65 text-xs text-slate-500">
+                  {msg.sender.email}
+                </small>
                 <div className="text-sm">
                   {msg.sender._id === "ai" ? (
                     WriteAiMessage(msg.message)
@@ -228,22 +230,27 @@ function Project() {
             <input
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              className="p-2 px-4 border-none outline-none flex-grow"
+              className="p-2 px-4 border-t border-sky-200/60 bg-white text-slate-800 placeholder:text-slate-400 outline-none flex-grow"
               type="text"
               placeholder="Enter message"
             />
-            <button onClick={send} className="px-5 bg-slate-950 text-white">
+            <button
+              onClick={send}
+              className="px-5 bg-sky-600 text-white hover:bg-sky-500 transition"
+            >
               <i className="ri-send-plane-fill"></i>
             </button>
           </div>
         </div>
         <div
-          className={`sidePanel w-full h-full flex flex-col gap-2 bg-slate-50 absolute transition-all ${
+          className={`sidePanel w-full h-full flex flex-col gap-2 bg-white absolute transition-all ${
             isSidePanelOpen ? "translate-x-0" : "-translate-x-full"
           } top-0`}
         >
-          <header className="flex justify-between items-center px-4 p-2 bg-slate-200">
-            <h1 className="font-semibold text-lg">Collaborators</h1>
+          <header className="flex justify-between items-center px-4 p-2 bg-sky-50/80 border-b border-sky-200/60 text-slate-800">
+            <h1 className="font-semibold text-lg text-slate-800">
+              Collaborators
+            </h1>
 
             <button
               onClick={() => setIsSidePanelOpen(!isSidePanelOpen)}
@@ -256,8 +263,8 @@ function Project() {
             {project.users &&
               project.users.map((user) => {
                 return (
-                  <div className="user cursor-pointer hover:bg-slate-200 p-2 flex gap-2 items-center">
-                    <div className="aspect-square rounded-full w-fit h-fit flex items-center justify-center p-5 text-white bg-slate-600">
+                  <div className="user cursor-pointer hover:bg-sky-50 p-2 flex gap-2 items-center text-slate-800 rounded-xl transition">
+                    <div className="aspect-square rounded-full w-fit h-fit flex items-center justify-center p-5 text-sky-700 bg-sky-50 ring-1 ring-sky-200/70">
                       <i className="ri-user-fill absolute"></i>
                     </div>
                     <h1 className="font-semibold text-lg">{user.email}</h1>
@@ -267,8 +274,8 @@ function Project() {
           </div>
         </div>
       </section>
-      <section className="right  bg-red-50 flex-grow h-full flex ">
-        <div className="explorer h-full max-w-64 min-w-52 bg-slate-200">
+      <section className="right bg-[#f6fbff] flex-grow h-full flex">
+        <div className="explorer h-full max-w-64 min-w-52 bg-white border-r border-sky-200/60">
           <div className="file-tree w-full">
             {Object.keys(FileTree).map((file, index) => (
               <button
@@ -277,7 +284,7 @@ function Project() {
                   setCurrentFile(file);
                   setOpenFiles([...new Set([...openFiles, file])]);
                 }}
-                className="tree-element cursor-pointer p-2 px-4 flex items-center gap-2 bg-slate-300 w-full"
+                className="tree-element cursor-pointer p-2 px-4 flex items-center gap-2 bg-white hover:bg-sky-50 transition w-full border-b border-sky-200/60 text-slate-800"
               >
                 <p className="font-semibold text-lg">{file}</p>
               </button>
@@ -292,8 +299,8 @@ function Project() {
                 <button
                   key={index}
                   onClick={() => setCurrentFile(file)}
-                  className={`open-file cursor-pointer p-2 px-4 flex items-center w-fit gap-2 bg-slate-300 ${
-                    currentFile === file ? "bg-slate-400" : ""
+                  className={`open-file cursor-pointer p-2 px-4 flex items-center w-fit gap-2 bg-white border-r border-sky-200/60 text-slate-800 ${
+                    currentFile === file ? "bg-sky-50" : ""
                   }`}
                 >
                   <p className="font-semibold text-lg">{file}</p>
@@ -331,7 +338,7 @@ function Project() {
 
                                   })
                                 }}
-                                className='p-2 px-4 bg-slate-300 text-white'
+                                className='p-2 px-4 bg-sky-600 text-white hover:bg-sky-500 transition rounded-md'
                             >
                                 run
                             </button>
@@ -343,7 +350,7 @@ function Project() {
           <div className="bottom flex flex-grow max-w-full shrink overflow-auto">
                         {
                             FileTree[ currentFile ] && (
-                                <div className="code-editor-area h-full overflow-auto flex-grow bg-slate-50">
+                                <div className="code-editor-area h-full overflow-auto flex-grow bg-white text-slate-800">
                                     <pre
                                         className="hljs h-full">
                                         <code
@@ -382,7 +389,7 @@ function Project() {
           <div className="address-bar">
               <input type="text"
                   onChange={(e) => setIframeUrl(e.target.value)}
-                  value={IframeUrl} className="w-full p-2 px-4 bg-slate-200" />
+                  value={IframeUrl} className="w-full p-2 px-4 bg-white border-b border-sky-200/60 text-slate-800 outline-none" />
           </div>
           <iframe src={IframeUrl} className="w-full h-full"></iframe>
       </div>)
@@ -390,8 +397,8 @@ function Project() {
       </section>
 
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white p-4 rounded-md w-96 max-w-full relative">
+        <div className="fixed inset-0 bg-slate-900/20 flex items-center justify-center">
+          <div className="bg-white border border-sky-200/70 p-4 rounded-2xl w-96 max-w-full relative text-slate-800 shadow-2xl shadow-slate-900/10">
             <header className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold">Select User</h2>
               <button onClick={() => setIsModalOpen(false)} className="p-2">
@@ -404,12 +411,12 @@ function Project() {
                   key={user.id}
                   className={`user cursor-pointer  ${
                     Array.from(selectedUserId).indexOf(user._id) != -1
-                      ? "bg-slate-200"
+                      ? "bg-sky-100/70"
                       : ""
-                  } p-2 flex gap-2 items-center`}
+                  } p-2 flex gap-2 items-center hover:bg-sky-50 transition rounded-xl`}
                   onClick={() => handleUserClick(user._id)}
                 >
-                  <div className="aspect-square relative rounded-full w-fit h-fit flex items-center justify-center p-5 text-white bg-slate-600">
+                  <div className="aspect-square relative rounded-full w-fit h-fit flex items-center justify-center p-5 text-sky-700 bg-sky-50 ring-1 ring-sky-200/70">
                     <i className="ri-user-fill absolute"></i>
                   </div>
                   <h1 className="font-semibold text-lg">{user.email}</h1>
@@ -418,7 +425,7 @@ function Project() {
             </div>
             <button
               onClick={addCollaborators}
-              className="absolute bottom-4 left-1/2 transform -translate-x-1/2 px-4 py-2 bg-blue-600 text-white rounded-md"
+              className="absolute bottom-4 left-1/2 transform -translate-x-1/2 px-4 py-2 bg-sky-600 text-white rounded-xl hover:bg-sky-500 transition"
             >
               Add Collaborators
             </button>
