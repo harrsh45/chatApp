@@ -157,6 +157,7 @@ function Project() {
   }, []);
 
   function send() {
+    if (!message.trim()) return;
     sendMessage("project-message", {
       message,
       sender: user,
@@ -183,8 +184,12 @@ function Project() {
   }
 
   return (
-    <main className="h-screen w-screen flex">
-      <section className="left relative flex flex-col h-screen min-w-72 bg-white border-r border-sky-200/60">
+    <main className="h-screen w-screen flex bg-[#dff2ff]">
+      <div className="pointer-events-none fixed inset-0 overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(120%_90%_at_50%_0%,rgba(56,189,248,0.16),transparent_65%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(90%_70%_at_10%_10%,rgba(125,211,252,0.12),transparent_65%)]" />
+      </div>
+      <section className="left relative flex flex-col h-screen min-w-72 bg-white/70 backdrop-blur border-r border-sky-200/60">
         <header className="flex justify-between items-center p-2 px-4 w-full bg-sky-50/80 backdrop-blur absolute z-10 top-0 border-b border-sky-200/60 text-slate-800">
           <button className="flex gap-2" onClick={() => setIsModalOpen(true)}>
             <i className="ri-add-fill mr-1"></i>
@@ -230,15 +235,21 @@ function Project() {
             <input
               value={message}
               onChange={(e) => setMessage(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  send();
+                }
+              }}
               className="p-2 px-4 border-t border-sky-200/60 bg-white text-slate-800 placeholder:text-slate-400 outline-none flex-grow"
               type="text"
               placeholder="Enter message"
             />
             <button
               onClick={send}
-              className="px-5 bg-sky-600 text-white hover:bg-sky-500 transition"
+              className="mx-2 my-1 inline-flex h-10 w-10 items-center justify-center rounded-full bg-sky-600 text-white hover:bg-sky-500 transition"
             >
-              <i className="ri-send-plane-fill"></i>
+              <i className="ri-arrow-up-line text-lg"></i>
             </button>
           </div>
         </div>
@@ -274,8 +285,8 @@ function Project() {
           </div>
         </div>
       </section>
-      <section className="right bg-[#f6fbff] flex-grow h-full flex">
-        <div className="explorer h-full max-w-64 min-w-52 bg-white border-r border-sky-200/60">
+      <section className="right bg-transparent flex-grow h-full flex">
+        <div className="explorer h-full max-w-64 min-w-52 bg-white/70 backdrop-blur border-r border-sky-200/60">
           <div className="file-tree w-full">
             {Object.keys(FileTree).map((file, index) => (
               <button
@@ -293,7 +304,7 @@ function Project() {
         </div>
 
         <div className="code-editor flex flex-col flex-grow h-full shrink">
-          <div className="top flex justify-between w-full">
+          <div className="top flex justify-between items-center w-full px-2 py-1 border-b border-sky-200/60 bg-white/60 backdrop-blur">
             <div className="files flex">
               {openFiles.map((file, index) => (
                 <button
@@ -350,7 +361,7 @@ function Project() {
           <div className="bottom flex flex-grow max-w-full shrink overflow-auto">
                         {
                             FileTree[ currentFile ] && (
-                                <div className="code-editor-area h-full overflow-auto flex-grow bg-white text-slate-800">
+                                <div className="code-editor-area h-full overflow-auto flex-grow bg-white/70 backdrop-blur text-slate-800">
                                     <pre
                                         className="hljs h-full">
                                         <code
