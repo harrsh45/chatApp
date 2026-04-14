@@ -230,11 +230,10 @@ const Home = () => {
   }, [user?.email]);
 
   return (
-    <main className="min-h-screen w-full bg-[#f6fbff] text-slate-900">
+    <main className="min-h-screen w-full text-slate-900 bg-[#dff2ff]">
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="absolute -top-48 left-1/2 h-[620px] w-[620px] -translate-x-1/2 rounded-full bg-sky-300/55 blur-3xl" />
-        <div className="absolute -top-24 left-[-8%] h-[420px] w-[420px] rounded-full bg-sky-200/50 blur-3xl" />
-        <div className="absolute inset-0 bg-[radial-gradient(70%_50%_at_50%_0%,rgba(125,211,252,0.55),transparent_65%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(120%_90%_at_50%_0%,rgba(56,189,248,0.16),transparent_65%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(90%_70%_at_10%_10%,rgba(125,211,252,0.12),transparent_65%)]" />
       </div>
 
       <div className="relative mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-10">
