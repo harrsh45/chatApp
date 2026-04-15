@@ -5,6 +5,7 @@ import axios from "../config/axios";
 import Markdown from "markdown-to-jsx";
 import hljs from "highlight.js"
 import { getWebContainer } from '../config/webcontainer'
+import RunOverlay from "../components/RunOverlay";
 import {
   initializeSocket,
   receiveMessage,
@@ -40,6 +41,10 @@ function Project() {
   const [openFiles, setOpenFiles] = useState([]);
   const [IframeUrl, setIframeUrl] = useState(null)
   const [RunProcess, setRunProcess] = useState(null)
+  const [isRunningPreview, setIsRunningPreview] = useState(false);
+  const [runStatus, setRunStatus] = useState("");
+  const serverReadyResolverRef = useRef(null);
+  const serverReadyTimeoutRef = useRef(null);
   
   const [ webContainer, setWebContainer ] = useState(null)
   const { user } = useContext(UserContext);
@@ -156,6 +161,35 @@ function Project() {
       });
   }, []);
 
+  useEffect(() => {
+    if (!webContainer) return;
+
+    // Register once so we don't miss the event.
+    webContainer.on("server-ready", (port, url) => {
+      console.log(port, url);
+      setIframeUrl(url);
+      setIsRunningPreview(false);
+      setRunStatus("");
+
+      if (serverReadyTimeoutRef.current) {
+        clearTimeout(serverReadyTimeoutRef.current);
+        serverReadyTimeoutRef.current = null;
+      }
+
+      if (serverReadyResolverRef.current) {
+        serverReadyResolverRef.current({ port, url });
+        serverReadyResolverRef.current = null;
+      }
+    });
+  }, [webContainer]);
+
+  useEffect(() => {
+    if (IframeUrl) {
+      setIsRunningPreview(false);
+      setRunStatus("");
+    }
+  }, [IframeUrl]);
+
   function send() {
     if (!message.trim()) return;
     sendMessage("project-message", {
@@ -189,6 +223,11 @@ function Project() {
         <div className="absolute inset-0 bg-[radial-gradient(120%_90%_at_50%_0%,rgba(56,189,248,0.16),transparent_65%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(90%_70%_at_10%_10%,rgba(125,211,252,0.12),transparent_65%)]" />
       </div>
+      <RunOverlay
+        open={isRunningPreview}
+        title="Preparing your preview"
+        subtitle={runStatus || "Spinning up the container and starting the dev server…"}
+      />
       <section className="left relative flex flex-col h-screen min-w-72 bg-white/70 backdrop-blur border-r border-sky-200/60">
         <header className="flex justify-between items-center p-2 px-4 w-full bg-sky-50/80 backdrop-blur absolute z-10 top-0 border-b border-sky-200/60 text-slate-800">
           <button className="flex gap-2" onClick={() => setIsModalOpen(true)}>
@@ -321,33 +360,55 @@ function Project() {
             <div className="actions flex gap-2">
                             <button
                                 onClick={async () => {
-                                  await webContainer.mount(FileTree)
-                                  const installProcess=await webContainer.spawn("npm",["install"])
-                                  installProcess.output.pipeTo(new WritableStream({
-                                    write(chunk)
-                                    {
-                                      console.log(chunk)
-                                    }
-                                  }))
-                                  if (RunProcess) {
-                                    
-                                    RunProcess.kill()
-                                    }
-                                     let tempRunProcess = await webContainer.spawn("npm", [ "start" ]);
+                                  if (!webContainer) return;
 
-                                     tempRunProcess.output.pipeTo(new WritableStream({
-                                       write(chunk) {
-                                         console.log(chunk)
-                                        }
-                                      }))
-                                      setRunProcess(tempRunProcess)
-                                        
-                              
-                                  webContainer.on('server-ready',(port,url)=>{
-                                    console.log(port,url)
-                                    setIframeUrl(url)
+                                  try {
+                                    setIsRunningPreview(true);
+                                    setRunStatus("Mounting files…");
 
-                                  })
+                                    await webContainer.mount(FileTree)
+
+                                    setRunStatus("Installing dependencies…");
+                                    const installProcess=await webContainer.spawn("npm",["install"])
+                                    installProcess.output.pipeTo(new WritableStream({
+                                      write(chunk)
+                                      {
+                                        console.log(chunk)
+                                      }
+                                    }))
+                                    await installProcess.exit;
+
+                                    if (RunProcess) {
+                                      RunProcess.kill()
+                                    }
+
+                                    setRunStatus("Starting dev server…");
+                                    // Wait for server-ready with a timeout so the overlay can't get stuck.
+                                    const serverReady = new Promise((resolve, reject) => {
+                                      serverReadyResolverRef.current = resolve;
+                                      if (serverReadyTimeoutRef.current) {
+                                        clearTimeout(serverReadyTimeoutRef.current);
+                                      }
+                                      serverReadyTimeoutRef.current = setTimeout(() => {
+                                        serverReadyResolverRef.current = null;
+                                        reject(new Error("Timed out waiting for dev server to become ready."));
+                                      }, 90_000);
+                                    });
+
+                                    let tempRunProcess = await webContainer.spawn("npm", [ "start" ]);
+
+                                    tempRunProcess.output.pipeTo(new WritableStream({
+                                      write(chunk) {
+                                        console.log(chunk)
+                                       }
+                                     }))
+                                     setRunProcess(tempRunProcess)
+                                    await serverReady;
+                                  } catch (e) {
+                                    console.log(e);
+                                    setIsRunningPreview(false);
+                                    setRunStatus("");
+                                  }
                                 }}
                                 className='p-2 px-4 bg-sky-600 text-white hover:bg-sky-500 transition rounded-md'
                             >
