@@ -28,7 +28,7 @@ const Register = () => {
         }).catch((err) => {
             console.log("error in register", err.response.data)
         })
-    }
+    } 
 
 
     return (
